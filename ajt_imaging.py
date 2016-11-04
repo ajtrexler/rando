@@ -90,7 +90,7 @@ fig2=plt.pie(sorted(acqtype.values(),reverse=True)[0:4],labels=sorted(acqtype,ke
 plt.suptitle('major imaging types used',size=15)
 plt.savefig('piegraph.png')
 
-
+ week 85% of 
 #make day of the week images acquired bar plot
 td=day_of_week(output)
 td_series=pd.Series(td.values())
