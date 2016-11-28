@@ -30,9 +30,7 @@ def get_entropy(items):
     n_items=[float(i)/np.sum(item_dict.values()) for i in item_dict.values()]
     entropy=np.sum([-n*np.log2(n) for n in n_items])
     return entropy
-
-def eval_poss_nodes():
-        
+         
         
 #calc max entropy from entry dataset targets
 dataset_entropy=get_entropy(targets)
@@ -42,20 +40,19 @@ dataset_entropy=get_entropy(targets)
 #calc entropy of child node per split at each of the 4 attributes
 #accept max entropy gain as root node, then recurse
 
-ents=[]
+ents={}
+gain={}
 for x in df:
     splitpoint=df[x].max()-((df[x].max()-df[x].min())/2)
     node_idx=df[x] <= splitpoint
     #get the target values for True and False daughter nodes
-    for x in node_idx.unique():
-        print get_entropy(targets[np.where(node_idx==x)])
-        
+    node_ents=[]
+    for y in node_idx.unique():
+        node_ents.append(get_entropy(targets[np.where(node_idx==y)]))
+    ents[x]=node_ents  
+    gain[x]=dataset_entropy-(np.sum(node_ents))
      
-    targets[node_idx==True]
     
-    ents.append(get_entropy(node_idx))
-
-ents.index(np.min(ents))    
     
     
 
