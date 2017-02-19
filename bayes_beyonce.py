@@ -29,9 +29,6 @@ n = len(data)
 mean_grams = sum(data)/n                   
 sigma_grams = np.std(data)    
 
-#call it a gaussian with mean and sigma given above.
-   
-counts,edges=np.histogram(data)
 class binom_grammy(Suite):
     def __init__(self,name=''):
         pmf=thinkbayes.MakeGaussianPmf(mean_grams,sigma_grams,3,20)
@@ -97,7 +94,6 @@ class hyper_grammy(Suite):
             n=round(hypo*M)
             
             like=scipy.stats.hypergeom.pmf(N,M,n,N)
-            print like
             if like == 0:
                 return 0.00001
             else:
@@ -109,24 +105,24 @@ class hyper_grammy(Suite):
         
     
 model=binom_grammy('beyonce')
+f2=plt.figure()
+f2=thinkplot.plot(model)
 model.UpdateSet(bin_data)      
 grammys=makegramPmf(model)
-thinkplot.plot(model)
+f2=thinkplot.plot(model)
+plt.savefig('grammy_fig2')
+
+
+#work on hypergeometric distribution
 
 model_h=hyper_grammy('beyonce')
-model_h.UpdateSet(bin_data)
-for x in bin_data:
-    
-    model_h.Update(x)
-    thinkplot.plot(model_h)
-    
+model_h.UpdateSet(bin_data)   
 grammy_hyper=makegramPmf(model_h)
 grammy_hyper.Mean()
-thinkplot.plot(grammy_hyper)
+thinkplot.plot(model_h)
 
 
-q=[x[1] for x in model.Items()]
-plt.plot(sorted(q))
+
 
 
     
