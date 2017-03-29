@@ -103,21 +103,31 @@ short=data.iloc[1:100]
  
 #crossref cities with their PUMA num.  re-index name_table using the combined ST_PUMA notation
 name_table=pd.read_table('/home/adam/scripts/datasets/2010_PUMA_Names.txt',delimiter=',')
+state_table=pd.read_csv('/home/adam/scripts/datasets/puma_state_id.csv')
+#parse the two letter state code from state_table
+def p_state_table(x):
+    r=re.search('/(\w{2})',x)
+    if r:
+        return r.group(1)
+    else:
+        return 'blah'
+state_abbr=state_table['Unnamed: 1'].apply(p_state_table)
+state_abbr_dict=dict(zip(state_abbr,state_table['State Code']))
+
 def f2(st,p):
     return str(int(st)) + '_' + str(int(p))   
 name_table.index=[f2(st,p) for st,p in zip(name_table['STATEFP'].values,name_table['PUMA5CE'].values)]
-
 
 #first narrow by state, then do the idx search in PUMA NAME
 fails=[]
 city_ids={}
 for c in cities:
     loc_state=cdata.loc[cdata['CityName']==c]['StateAbbr'].values[0]
-    idx=[i for i,x in enumerate(name_table['PUMA NAME'].values) if re.search(c.lower(),x.lower())]
+    loc_table=name_table.loc[name_table['STATEFP']==state_abbr_dict[loc_state]]
+    idx=[i for i,x in enumerate(loc_table['PUMA NAME'].values) if re.search(c.lower(),x.lower()) ]
     if idx:
-        city_ids[c]=idx
+        city_ids[c]=list(loc_table.ix[idx].index.values)
     else:
-        print 'woo!!! nothingness!'
         fails.append(c)
             
 
