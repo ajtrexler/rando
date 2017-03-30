@@ -16,7 +16,7 @@ cityshort=cdata.loc[1:100]
 
 cities=list(np.unique(cdata['CityName'].values))[1:]
 city_states=cdata['CityName']
-for x in cities
+
 #keep only cdata from relevant
 measures=list(np.unique(cdata['Measure']))
 rel_measures=[measures[2],measures[19],measures[23]]
@@ -78,7 +78,7 @@ relcols=['PUMA','ST','PINCP','SOCP','COW','SCHL','WKW','AGEP','RAC1P','FOD1P','A
 #    except:
 #        print 'check',x
         
-data=get_subset_data(datadir,1000000,1000000,n,relcols)
+data=get_subset_data(datadir,10000000,10000,n,relcols)
 [alldata,thorw]=get_data(datadir,500,500)
 #[data,filename]=get_data(datadir,10000,10000)
 #drop row 0 because it has the column names imported into it.  note that this reindexes the whole business.
@@ -133,10 +133,19 @@ for c in cities:
 
 #build flatfiles for each condition
 for x,n in zip(rel_measures,['binge','prevent','nosleep']):
+    n
     local_city=rel_cdata.loc[rel_cdata['Measure']==x]
+    loc_df=pd.DataFrame()
+    for c in city_ids:
+        df=data.loc[data['rPUMA'].isin(city_ids[c])]
+
+        targ=local_city.loc[local_city['CityName']==c]
+        pd.concat([df,],1)
+    local_demo=
     local_target
     
-    
+#set targ equal to mean Data_Value and use this one value for all of df['target']   
+#probably also get the population count stats for stats
 
 
 
