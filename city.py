@@ -10,6 +10,7 @@ import numpy as np
 import time
 import os
 import re
+import sqlite3
 
 cdata=pd.read_csv('/home/adam/Downloads/500city.csv')
 cityshort=cdata.loc[1:100]
@@ -69,14 +70,12 @@ start=time.clock()
 n=get_names(datadir)
 
 #keep only the relevant columns from the ACS data and del the rest.
-relcols=['PUMA','ST','PINCP','SOCP','COW','SCHL','WKW','AGEP','RAC1P','FOD1P','ADJINC','ENG','MAR','MIL','SEX','ANC1P']
+relcols=['PUMA','ST','PINCP','SOCP','SEMP','MIG','JWTR','JWMNP','CIT','INDP','JWAP','NOP','COW','SCHL','WKW','AGEP','ANC2P','RAC1P','FOD1P','ADJINC','ENG','MAR','MIL','SEX','ANC1P']
 
-##stupid way to check if names i nrelcols are
-#for x in relcols:
-#    try:
-#        alldata[x]
-#    except:
-#        print 'check',x
+#stupid way to check if names i nrelcols are
+for x in relcols:
+    if x not in n:
+        print 'check',x
         
 data=get_subset_data(datadir,10000000,10000,n,relcols)
 [alldata,thorw]=get_data(datadir,500,500)
@@ -129,20 +128,60 @@ for c in cities:
         city_ids[c]=list(loc_table.ix[idx].index.values)
     else:
         fails.append(c)
-            
+
+'''
+build the SQL table that will hold the flat files for each condition
+convoluted method to create column names in the SQL tables based on what the 
+column names in the dataframes are.  it should work generally for however many columns are used.
+
+'''
+conditions=['binge','prevent','nosleep']   
+sql_file='cityhealth_demo.sqlite'
+l=[]
+for x in short.columns.values:
+    if x != 'rPUMA':
+        l.append(x+' '+'INT,')
+    else:
+        l.append(x+' '+'STR')
+
+c=''.join(l)
+c=c+', entry INT, target DECIMAL'
+c=c+',PRIMARY KEY (entry)'
+
+if not os.path.isfile(sql_file):
+    db=sqlite3.connect(sql_file)
+    db.text_factory='str'     
+    conn=db.cursor()
+    for x in conditions:
+        conn.execute('CREATE TABLE {tn} ({heads})'.format(tn=x,heads=c))
+    db.commit()
+    db.close()
+
+db=sqlite3.connect(sql_file)
+conn=db.cursor()
 
 #build flatfiles for each condition
-for x,n in zip(rel_measures,['binge','prevent','nosleep']):
-    n
+for x,n in zip(rel_measures,conditions):
     local_city=rel_cdata.loc[rel_cdata['Measure']==x]
     loc_df=pd.DataFrame()
-    for c in city_ids:
+    for placetrack,c in enumerate(city_ids):
         df=data.loc[data['rPUMA'].isin(city_ids[c])]
 
         targ=local_city.loc[local_city['CityName']==c]
-        pd.concat([df,],1)
-    local_demo=
-    local_target
+        df['target']=targ['Data_Value'].mean()
+        prev_en=conn.execute('SELECT COUNT (*) FROM {tab}'.format(tab=n)).fetchall()[0][0]
+        if prev_en != 0:
+            df['entry']=np.arange(prev_en+1,prev_en+1+len(df),1)
+            #if existing entries, get the entry val from last one and use that for np.arange for new entry vals
+        else:
+            df['entry']=np.arange(0,len(df),1)
+            #if no exisiting entries init entry val to len of df    
+        df.to_sql(n,db,if_exists='append',index=False)
+        db.commit()
+        print placetrack
+db.close()
+
+    
     
 #set targ equal to mean Data_Value and use this one value for all of df['target']   
 #probably also get the population count stats for stats
